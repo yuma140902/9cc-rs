@@ -7,7 +7,7 @@ fn strtol<I>(iter: &mut Peekable<I>) -> anyhow::Result<u32>
 where
     I: Iterator<Item = char>,
 {
-    ninecc::strtol(iter).with_context(|| format!("invalid character: {:?}", iter.peek()))
+    ninecc::c::strtol(iter).with_context(|| format!("invalid character: {:?}", iter.peek()))
 }
 
 fn main() -> anyhow::Result<()> {
