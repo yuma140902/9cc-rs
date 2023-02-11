@@ -1,16 +1,6 @@
 use anyhow::bail;
-use anyhow::ensure;
-use anyhow::Context as _;
 use ninecc::token::Token;
 use std::env;
-use std::iter::Peekable;
-
-fn strtol<I>(iter: &mut Peekable<I>) -> anyhow::Result<u32>
-where
-    I: Iterator<Item = char>,
-{
-    ninecc::c::strtol(iter).with_context(|| format!("invalid character: {:?}", iter.peek()))
-}
 
 fn main() -> anyhow::Result<()> {
     let args: Vec<_> = env::args().collect();
@@ -20,16 +10,14 @@ fn main() -> anyhow::Result<()> {
     println!(".globl main");
     println!("main:");
 
-    let mut iter = s.chars().peekable();
-
-    let mut tokens = ninecc::token::tokenize(&mut iter)?.into_iter();
+    let mut tokens = ninecc::token::tokenize(s)?.into_iter();
 
     match tokens.next() {
-        Some(Token::Num(num)) => println!("  mov rax, {}", num),
+        Some((_, Token::Num(num))) => println!("  mov rax, {}", num),
         otherwise => bail!("数ではありません: {:?}", otherwise),
     };
 
-    while let Some(token) = tokens.next() {
+    while let Some((_, token)) = tokens.next() {
         let op = if token == Token::Plus {
             "add"
         } else if token == Token::Minus {
@@ -39,7 +27,7 @@ fn main() -> anyhow::Result<()> {
         };
 
         match tokens.next() {
-            Some(Token::Num(num)) => println!("  {} rax, {}", op, num),
+            Some((_, Token::Num(num))) => println!("  {} rax, {}", op, num),
             otherwise => bail!("数ではありません: {:?}", otherwise),
         };
     }

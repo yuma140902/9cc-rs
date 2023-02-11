@@ -11,31 +11,31 @@ use std::iter::Peekable;
 /// use ninecc::c::strtol;
 ///
 /// let s = "12a34";
-/// let mut iter = s.chars().peekable();
-/// assert_eq!(strtol(&mut iter), Some(12));
+/// let mut iter = s.chars().enumerate().peekable();
+/// assert_eq!(strtol(&mut iter), Some((0, 12)));
 /// ```
 ///
 /// ```
 /// use ninecc::c::strtol;
 ///
 /// let s = "abcd";
-/// let mut iter = s.chars().peekable();
+/// let mut iter = s.chars().enumerate().peekable();
 /// assert_eq!(strtol(&mut iter), None);
 /// ```
 ///
-pub fn strtol<I>(iter: &mut Peekable<I>) -> Option<u32>
+pub fn strtol<I>(iter: &mut Peekable<I>) -> Option<(usize, u32)>
 where
-    I: Iterator<Item = char>,
+    I: Iterator<Item = (usize, char)>,
 {
     let mut ret = None;
-    while let Some(c) = iter.peek() {
+    while let Some((_, c)) = iter.peek() {
         if c.is_digit(10) {
-            if let Some(c) = iter.next() {
+            if let Some((i, c)) = iter.next() {
                 if ret.is_none() {
-                    ret = Some(0);
+                    ret = Some((i, 0));
                 }
                 let d = c.to_digit(10).unwrap_or(0);
-                ret = ret.map(|r| r * 10 + d);
+                ret = ret.map(|(i, r)| (i, r * 10 + d));
                 continue;
             }
         }
@@ -51,23 +51,24 @@ mod test {
     #[test]
     fn test_strtol1() {
         let s = "1234";
-        assert_eq!(strtol(&mut s.chars().peekable()), Some(1234));
+        assert_eq!(
+            strtol(&mut s.chars().enumerate().peekable()),
+            Some((0, 1234))
+        );
     }
 
     #[test]
     fn test_strtol2() {
         let s = "abc";
-        assert_eq!(strtol(&mut s.chars().peekable()), None);
+        assert_eq!(strtol(&mut s.chars().enumerate().peekable()), None);
     }
 
     #[test]
     fn test_strtol3() {
         let s = "12+34";
-        let mut iter = s.chars().peekable();
-        assert_eq!(strtol(&mut iter), Some(12));
-        eprintln!("part 1 done: pointing {:?}", iter.peek());
-        iter.next(); // skip +
-        assert_eq!(strtol(&mut iter), Some(34));
-        eprintln!("part 2 done: pointing {:?}", iter.peek());
+        let mut iter = s.chars().enumerate().peekable();
+        assert_eq!(strtol(&mut iter), Some((0, 12)));
+        iter.next(); // skip '+'
+        assert_eq!(strtol(&mut iter), Some((3, 34)));
     }
 }

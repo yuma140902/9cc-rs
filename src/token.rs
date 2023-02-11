@@ -1,5 +1,4 @@
 use anyhow::bail;
-use std::iter::Peekable;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Token {
@@ -8,31 +7,40 @@ pub enum Token {
     Num(u32),
 }
 
-pub fn tokenize<I>(iter: &mut Peekable<I>) -> anyhow::Result<Vec<Token>>
-where
-    I: Iterator<Item = char>,
-{
+/// ## Example
+/// ```
+/// use ninecc::token::tokenize;
+/// use ninecc::token::Token::*;
+///
+/// let expr = "1 +42 - 4".to_string();
+/// let tokens = tokenize(&expr).unwrap();
+/// assert_eq!(tokens, vec![(0, Num(1)), (2, Plus), (3, Num(42)), (6, Minus), (8, Num(4))]);
+/// ```
+pub fn tokenize(s: &str) -> anyhow::Result<Vec<(usize, Token)>> {
+    let mut iter = s.chars().enumerate().peekable();
     let mut tokens = Vec::new();
 
-    while let Some(c) = iter.peek() {
+    while let Some((_, c)) = iter.peek() {
         if c.is_whitespace() {
             iter.next();
             continue;
         }
 
         if *c == '+' {
-            iter.next();
-            tokens.push(Token::Plus);
+            if let Some((i, _)) = iter.next() {
+                tokens.push((i, Token::Plus));
+            }
             continue;
         }
         if *c == '-' {
-            iter.next();
-            tokens.push(Token::Minus);
+            if let Some((i, _)) = iter.next() {
+                tokens.push((i, Token::Minus));
+            }
             continue;
         }
         if c.is_digit(10) {
-            if let Some(num) = crate::c::strtol(iter) {
-                tokens.push(Token::Num(num));
+            if let Some((i, num)) = crate::c::strtol(&mut iter) {
+                tokens.push((i, Token::Num(num)));
                 continue;
             }
         }
@@ -52,8 +60,16 @@ mod test {
         use Token::*;
 
         let expr = "12 + 34-45";
-        let mut iter = expr.chars().peekable();
-        let tokens = tokenize(&mut iter).unwrap();
-        assert_eq!(tokens, vec![Num(12), Plus, Num(34), Minus, Num(45)]);
+        let tokens = tokenize(&expr).unwrap();
+        assert_eq!(
+            tokens,
+            vec![
+                (0, Num(12)),
+                (3, Plus),
+                (5, Num(34)),
+                (7, Minus),
+                (8, Num(45))
+            ]
+        );
     }
 }
