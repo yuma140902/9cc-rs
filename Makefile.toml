@@ -10,7 +10,7 @@ fn test
   expected = set ${1}
   input = set ${2}
 
-  o = exec cargo run "--" ${input}
+  o = exec cargo run -- ${input}
   if not eq ${o.code} 0
     echo "Test failed: Failed to compile ${input}"
     exit 1
@@ -33,6 +33,7 @@ end
 test 0 0
 test 42 42
 test 21 5+20-4
+test 12 "10   + 3-  1"
 
 echo "All tests passed"
 '''
