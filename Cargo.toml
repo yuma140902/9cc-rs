@@ -1,0 +1,12 @@
+[package]
+name = "ninecc"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+[[bin]]
+name = "9ccrs"
+path = "src/main.rs"

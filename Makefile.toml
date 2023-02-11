@@ -1,0 +1,33 @@
+[config]
+reduce_output = false
+
+[tasks.9ccrs]
+description = "Check if binaries compiled by 9ccrs works as expected"
+condition = { platforms = ["linux"], fail_message = "Only Linux is supported" }
+script = '''
+#!/usr/bin/env bash
+function test {
+  expected=$1
+  input=$2
+
+  cargo run -- "$input" > tmp.s
+  if [ ! $? ]; then
+    echo "Test failed: Failed to compile $source_code"
+    exit 1
+  fi
+
+  gcc -o tmp tmp.s || exit 1
+  ./tmp
+  result="$?"
+
+  if [ "$result" != "$expected" ]; then
+    echo "Test failed: $expected expected but got $result"
+    exit 1
+  fi
+}
+
+test 0 0
+test 42 42
+
+echo "All tests passed"
+'''
