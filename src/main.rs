@@ -7,7 +7,7 @@ fn main() {
     println!(
         "\
 .intel_syntax noprefix
-.global main
+.globl main
 main:
 \tmov rax, {}
 \tret",
