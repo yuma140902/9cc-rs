@@ -38,7 +38,7 @@ pub fn tokenize(s: &str) -> Vec<(usize, Token)> {
             }
             continue;
         }
-        if c.is_digit(10) {
+        if c.is_ascii_digit() {
             if let Some((i, num)) = crate::c::strtol(&mut iter) {
                 tokens.push((i, Token::Num(num)));
                 continue;

@@ -29,7 +29,7 @@ where
 {
     let mut ret = None;
     while let Some((_, c)) = iter.peek() {
-        if c.is_digit(10) {
+        if c.is_ascii_digit() {
             if let Some((i, c)) = iter.next() {
                 if ret.is_none() {
                     ret = Some((i, 0));
