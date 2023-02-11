@@ -46,7 +46,7 @@ pub fn tokenize(s: &str) -> Vec<(usize, Token)> {
         }
 
         if let Some((i, c)) = iter.next() {
-            show_error_panic(format!("could not tokenize: {:?}", c), s, i);
+            show_error_panic(&format!("could not tokenize: {:?}", c), s, i);
         }
     }
 
