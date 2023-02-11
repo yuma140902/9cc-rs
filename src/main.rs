@@ -1,5 +1,7 @@
 use anyhow::bail;
+use anyhow::ensure;
 use anyhow::Context as _;
+use ninecc::token::Token;
 use std::env;
 use std::iter::Peekable;
 
@@ -20,19 +22,26 @@ fn main() -> anyhow::Result<()> {
 
     let mut iter = s.chars().peekable();
 
-    println!("  mov rax, {}", strtol(&mut iter)?);
+    let mut tokens = ninecc::token::tokenize(&mut iter)?.into_iter();
 
-    while let Some(c) = iter.peek() {
-        let op = if *c == '+' {
+    match tokens.next() {
+        Some(Token::Num(num)) => println!("  mov rax, {}", num),
+        otherwise => bail!("数ではありません: {:?}", otherwise),
+    };
+
+    while let Some(token) = tokens.next() {
+        let op = if token == Token::Plus {
             "add"
-        } else if *c == '-' {
+        } else if token == Token::Minus {
             "sub"
         } else {
-            bail!("invalid character: {:?}", c);
+            bail!("演算子ではありません: {:?}", token)
         };
 
-        iter.next();
-        println!("  {} rax, {}", op, strtol(&mut iter)?);
+        match tokens.next() {
+            Some(Token::Num(num)) => println!("  {} rax, {}", op, num),
+            otherwise => bail!("数ではありません: {:?}", otherwise),
+        };
     }
 
     println!("  ret");
