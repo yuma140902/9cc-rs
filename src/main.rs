@@ -1,4 +1,5 @@
 use anyhow::bail;
+use ninecc::show_error_panic;
 use ninecc::token::Token;
 use std::env;
 
@@ -10,11 +11,12 @@ fn main() -> anyhow::Result<()> {
     println!(".globl main");
     println!("main:");
 
-    let mut tokens = ninecc::token::tokenize(s)?.into_iter();
+    let mut tokens = ninecc::token::tokenize(s).into_iter();
 
     match tokens.next() {
         Some((_, Token::Num(num))) => println!("  mov rax, {}", num),
-        otherwise => bail!("数ではありません: {:?}", otherwise),
+        Some((i, token)) => show_error_panic(format!("数ではありません: {:?}", token), s, i),
+        _ => bail!("数ではありません"),
     };
 
     while let Some((_, token)) = tokens.next() {
@@ -28,7 +30,8 @@ fn main() -> anyhow::Result<()> {
 
         match tokens.next() {
             Some((_, Token::Num(num))) => println!("  {} rax, {}", op, num),
-            otherwise => bail!("数ではありません: {:?}", otherwise),
+            Some((i, token)) => show_error_panic(format!("数ではありません: {:?}", token), s, i),
+            _ => bail!("数ではありません"),
         };
     }
 

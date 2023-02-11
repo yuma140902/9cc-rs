@@ -1,4 +1,4 @@
-use anyhow::bail;
+use crate::show_error_panic;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Token {
@@ -13,10 +13,10 @@ pub enum Token {
 /// use ninecc::token::Token::*;
 ///
 /// let expr = "1 +42 - 4".to_string();
-/// let tokens = tokenize(&expr).unwrap();
+/// let tokens = tokenize(&expr);
 /// assert_eq!(tokens, vec![(0, Num(1)), (2, Plus), (3, Num(42)), (6, Minus), (8, Num(4))]);
 /// ```
-pub fn tokenize(s: &str) -> anyhow::Result<Vec<(usize, Token)>> {
+pub fn tokenize(s: &str) -> Vec<(usize, Token)> {
     let mut iter = s.chars().enumerate().peekable();
     let mut tokens = Vec::new();
 
@@ -45,10 +45,12 @@ pub fn tokenize(s: &str) -> anyhow::Result<Vec<(usize, Token)>> {
             }
         }
 
-        bail!("could not tokenize: {:?}", iter.peek());
+        if let Some((i, c)) = iter.next() {
+            show_error_panic(format!("could not tokenize: {:?}", c), s, i);
+        }
     }
 
-    Ok(tokens)
+    tokens
 }
 
 #[cfg(test)]
@@ -60,7 +62,7 @@ mod test {
         use Token::*;
 
         let expr = "12 + 34-45";
-        let tokens = tokenize(&expr).unwrap();
+        let tokens = tokenize(&expr);
         assert_eq!(
             tokens,
             vec![
