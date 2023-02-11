@@ -32,6 +32,7 @@ end
 
 test 0 0
 test 42 42
+test 21 5+20-4
 
 echo "All tests passed"
 '''
