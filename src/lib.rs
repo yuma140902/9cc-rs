@@ -28,17 +28,15 @@ where
     I: Iterator<Item = char>,
 {
     let mut ret = None;
-    loop {
-        if let Some(c) = iter.peek() {
-            if c.is_digit(10) {
-                if let Some(c) = iter.next() {
-                    if ret.is_none() {
-                        ret = Some(0);
-                    }
-                    let d = c.to_digit(10).unwrap_or(0);
-                    ret = ret.map(|r| r * 10 + d);
-                    continue;
+    while let Some(c) = iter.peek() {
+        if c.is_digit(10) {
+            if let Some(c) = iter.next() {
+                if ret.is_none() {
+                    ret = Some(0);
                 }
+                let d = c.to_digit(10).unwrap_or(0);
+                ret = ret.map(|r| r * 10 + d);
+                continue;
             }
         }
         break;
