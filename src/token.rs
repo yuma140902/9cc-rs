@@ -1,3 +1,4 @@
+use crate::chars::PeekableIterExt;
 use crate::show_error_panic;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -7,46 +8,30 @@ pub enum Token {
     Num(u32),
 }
 
-/// ## Example
-/// ```
-/// use ninecc::token::tokenize;
-/// use ninecc::token::Token::*;
-///
-/// let expr = "1 +42 - 4".to_string();
-/// let tokens = tokenize(&expr);
-/// assert_eq!(tokens, vec![(0, Num(1)), (2, Plus), (3, Num(42)), (6, Minus), (8, Num(4))]);
-/// ```
 pub fn tokenize(s: &str) -> Vec<(usize, Token)> {
     let mut iter = s.chars().enumerate().peekable();
     let mut tokens = Vec::new();
 
-    while let Some((_, c)) = iter.peek() {
-        if c.is_whitespace() {
-            iter.next();
+    while let Some(_) = iter.peek() {
+        iter.skip_whitespaces();
+
+        if let Some((i, _)) = iter.take_char('+') {
+            tokens.push((i, Token::Plus));
             continue;
         }
 
-        if *c == '+' {
-            if let Some((i, _)) = iter.next() {
-                tokens.push((i, Token::Plus));
-            }
+        if let Some((i, _)) = iter.take_char('-') {
+            tokens.push((i, Token::Minus));
             continue;
-        }
-        if *c == '-' {
-            if let Some((i, _)) = iter.next() {
-                tokens.push((i, Token::Minus));
-            }
-            continue;
-        }
-        if c.is_ascii_digit() {
-            if let Some((i, num)) = crate::c::strtol(&mut iter) {
-                tokens.push((i, Token::Num(num)));
-                continue;
-            }
         }
 
-        if let Some((i, c)) = iter.next() {
-            show_error_panic(&format!("could not tokenize: {:?}", c), s, i);
+        if let Some((i, num)) = iter.take_num() {
+            tokens.push((i, Token::Num(num)));
+            continue;
+        }
+
+        if let Some((i, _)) = iter.next() {
+            show_error_panic("could not tokenize", s, i)
         }
     }
 
