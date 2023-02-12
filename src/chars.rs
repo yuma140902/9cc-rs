@@ -1,13 +1,13 @@
 use std::iter::Peekable;
 
-pub trait PeekableIterExt {
+pub trait CharsIterExt {
     fn skip_whitespaces(&mut self);
     fn take_char(&mut self, c: char) -> Option<(usize, char)>;
     fn take_ascii_digit(&mut self) -> Option<(usize, u32)>;
     fn take_num(&mut self) -> Option<(usize, u32)>;
 }
 
-impl<I> PeekableIterExt for Peekable<I>
+impl<I> CharsIterExt for Peekable<I>
 where
     I: Iterator<Item = (usize, char)>,
 {

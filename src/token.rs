@@ -1,4 +1,4 @@
-use crate::chars::PeekableIterExt;
+use crate::chars::CharsIterExt;
 use crate::show_error_panic;
 
 #[derive(Debug, PartialEq, Eq)]
