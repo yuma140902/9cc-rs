@@ -59,7 +59,7 @@ pub fn tokenize(s: &str) -> Vec<(usize, Token)> {
         }
 
         if let Some((i, _)) = iter.next() {
-            show_error_panic("could not tokenize", s, i)
+            show_error_panic("トークナイズできません", s, i)
         }
     }
 
