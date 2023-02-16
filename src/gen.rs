@@ -20,6 +20,15 @@ pub fn gen(node: &Node) {
             }
             println!("\tpush rax");
         }
+        Node::Unary(op, operand) => {
+            gen(operand);
+            println!("\tpop rax");
+            match *op {
+                crate::ast::UnaryOp::Positive => { /* nothing */ }
+                crate::ast::UnaryOp::Negative => println!("\tneg rax"),
+            }
+            println!("\tpush rax");
+        }
         Node::Num(num) => println!("\tpush {num}"),
     }
 }

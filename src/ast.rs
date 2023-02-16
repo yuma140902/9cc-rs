@@ -5,8 +5,11 @@ use std::iter::Peekable;
 /// 抽象構文木
 #[derive(Debug, PartialEq, Eq)]
 pub enum Node {
+    // TODO: Binaryに名称変更
     /// 二項演算
     BinOp(BinOp, Box<Node>, Box<Node>),
+    /// 単項演算子
+    Unary(UnaryOp, Box<Node>),
     /// 数値
     Num(u32),
 }
@@ -20,6 +23,13 @@ pub enum BinOp {
     Div,
 }
 
+/// 単項演算子の種類を表すenum
+#[derive(Debug, PartialEq, Eq)]
+pub enum UnaryOp {
+    Positive,
+    Negative,
+}
+
 /// トークン列からexprを読み込む
 ///
 /// exprとして解釈可能な最長の部分を取り出して抽象構文木の部分木を作る。
@@ -30,7 +40,7 @@ pub enum BinOp {
 /// [`Token`])のPeekableなイテレータ。usizeはトークンのソースコード中での位置である
 pub fn expr<I>(line: &str, tokens: &mut Peekable<I>) -> Box<Node>
 where
-    I: Iterator<Item = (usize, Token)>,
+    I: Iterator<Item = (usize, Token)> + std::fmt::Debug,
 {
     let mut node = mul(line, tokens);
 
@@ -55,27 +65,27 @@ where
 /// トークン列からmulを読み込む
 ///
 /// mulとして解釈可能な最長の部分を取り出して抽象構文木の部分木を作る。
-/// mulとは`primary ("*" primary | "/" primary)*`である。
+/// mulとは`unary ("*" unary | "/" unary)*`である。
 ///
 /// - line - ソースコードの行。エラー表示に用いる。
 /// - tokens - (usize,
 /// [`Token`])のPeekableなイテレータ。usizeはトークンのソースコード中での位置である
 pub fn mul<I>(line: &str, tokens: &mut Peekable<I>) -> Box<Node>
 where
-    I: Iterator<Item = (usize, Token)>,
+    I: Iterator<Item = (usize, Token)> + std::fmt::Debug,
 {
-    let mut node = primary(line, tokens);
+    let mut node = unary(line, tokens);
 
     while let Some((_, token)) = tokens.peek() {
         if *token == Token::Asterisk {
             tokens.next();
             let lhs = node;
-            let rhs = primary(line, tokens);
+            let rhs = unary(line, tokens);
             node = Box::new(Node::BinOp(BinOp::Mul, lhs, rhs));
         } else if *token == Token::Slash {
             tokens.next();
             let lhs = node;
-            let rhs = primary(line, tokens);
+            let rhs = unary(line, tokens);
             node = Box::new(Node::BinOp(BinOp::Div, lhs, rhs));
         } else {
             break;
@@ -83,6 +93,35 @@ where
     }
 
     node
+}
+
+/// トークン列からunaryを読み込む
+///
+/// unaryとして解釈可能な最長の部分を取り出して抽象構文木の部分木を作る。
+/// unaryとは`("+" | "-")? primary`である。
+///
+/// - line - ソースコードの行。エラー表示に用いる。
+/// - tokens - (usize,
+/// [`Token`])のPeekableなイテレータ。usizeはトークンのソースコード中での位置である
+pub fn unary<I>(line: &str, tokens: &mut Peekable<I>) -> Box<Node>
+where
+    I: Iterator<Item = (usize, Token)> + std::fmt::Debug,
+{
+    if let Some((_, token)) = tokens.peek() {
+        if *token == Token::Plus {
+            tokens.next();
+            let operand = primary(line, tokens);
+            Box::new(Node::Unary(UnaryOp::Positive, operand))
+        } else if *token == Token::Minus {
+            tokens.next();
+            let operand = primary(line, tokens);
+            Box::new(Node::Unary(UnaryOp::Negative, operand))
+        } else {
+            primary(line, tokens)
+        }
+    } else {
+        crate::show_error_panic("unaryではありません", line, line.len())
+    }
 }
 
 /// トークン列からprimaryを読み込む
@@ -95,7 +134,7 @@ where
 /// [`Token`])のPeekableなイテレータ。usizeはトークンのソースコード中での位置である
 pub fn primary<I>(line: &str, tokens: &mut Peekable<I>) -> Box<Node>
 where
-    I: Iterator<Item = (usize, Token)>,
+    I: Iterator<Item = (usize, Token)> + std::fmt::Debug,
 {
     if let Some((_, Token::OpenParenthesis)) = tokens.peek() {
         tokens.next();

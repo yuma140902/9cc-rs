@@ -1,6 +1,29 @@
 [config]
 reduce_output = false
 
+[tasks.9ccrun]
+description = "Compile the generated assembly, run, and show the exit code"
+script_runner = "@duckscript"
+script = '''
+input = set ${1}
+
+o = exec cargo run -- ${input}
+if not eq ${o.code} 0
+  echo "Failed to compile ${input}"
+  exit 1
+end
+writefile tmp.s ${o.stdout}
+
+o = exec gcc -o tmp.exe tmp.s
+if not eq ${o.code} 0
+  echo "Generated assembly is not valid"
+  exit 1
+end
+
+o = exec ./tmp.exe
+echo "Exit code = ${o.code}"
+'''
+
 [tasks.9ccrs]
 description = "Check if binaries compiled by 9ccrs works as expected"
 #condition = { platforms = ["linux"], fail_message = "Only Linux is supported" }
@@ -36,6 +59,8 @@ test 21 5+20-4
 test 12 "10   + 3-  1"
 test 26 "2 * 3+4   *5"
 test 70 "2*(((3+4)))*5"
+test 15 "-3*+5*(-1)"
+test 10 "-10+20"
 
 echo "All tests passed"
 '''

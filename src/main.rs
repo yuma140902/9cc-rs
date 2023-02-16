@@ -6,9 +6,10 @@ fn main() -> anyhow::Result<()> {
     let s = args.get(1).expect("Usage: 9ccrs INPUT");
 
     let mut tokens = ninecc::token::tokenize(s).into_iter().peekable();
+    eprintln!("tokens: {:#?}", tokens);
 
     let ast = expr(s, &mut tokens);
-    eprintln!("{:#?}", ast);
+    eprintln!("AST: {:#?}", ast);
 
     println!(".intel_syntax noprefix");
     println!(".globl main");
