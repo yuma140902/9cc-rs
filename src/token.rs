@@ -1,3 +1,4 @@
+//! トークナイザ
 use crate::chars::CharsIterExt;
 use crate::show_error_panic;
 
@@ -12,6 +13,9 @@ pub enum Token {
     Num(u32),
 }
 
+/// 文字列をトークンに分割する
+///
+/// 戻り値は`(usize, Token)`の列で、このうち`usize`はトークンの文字列内での位置を表す
 pub fn tokenize(s: &str) -> Vec<(usize, Token)> {
     let mut iter = s.chars().enumerate().peekable();
     let mut tokens = Vec::new();

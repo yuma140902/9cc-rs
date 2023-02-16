@@ -1,12 +1,17 @@
+//! 抽象構文木(AST)関係のモジュール
 use crate::token::Token;
 use std::iter::Peekable;
 
+/// 抽象構文木
 #[derive(Debug, PartialEq, Eq)]
 pub enum Node {
+    /// 二項演算
     BinOp(BinOp, Box<Node>, Box<Node>),
+    /// 数値
     Num(u32),
 }
 
+/// 二項演算の種類を表すenum
 #[derive(Debug, PartialEq, Eq)]
 pub enum BinOp {
     Add,
@@ -15,6 +20,14 @@ pub enum BinOp {
     Div,
 }
 
+/// トークン列からexprを読み込む
+///
+/// exprとして解釈可能な最長の部分を取り出して抽象構文木の部分木を作る。
+/// exprとは `mul ("+" mul | "-" mul)*` である。
+///
+/// - line - ソースコードの行。エラー表示に用いる。
+/// - tokens - (usize,
+/// [`Token`])のPeekableなイテレータ。usizeはトークンのソースコード中での位置である
 pub fn expr<I>(line: &str, tokens: &mut Peekable<I>) -> Box<Node>
 where
     I: Iterator<Item = (usize, Token)>,
@@ -39,6 +52,14 @@ where
     node
 }
 
+/// トークン列からmulを読み込む
+///
+/// mulとして解釈可能な最長の部分を取り出して抽象構文木の部分木を作る。
+/// mulとは`primary ("*" primary | "/" primary)*`である。
+///
+/// - line - ソースコードの行。エラー表示に用いる。
+/// - tokens - (usize,
+/// [`Token`])のPeekableなイテレータ。usizeはトークンのソースコード中での位置である
 pub fn mul<I>(line: &str, tokens: &mut Peekable<I>) -> Box<Node>
 where
     I: Iterator<Item = (usize, Token)>,
@@ -64,6 +85,14 @@ where
     node
 }
 
+/// トークン列からprimaryを読み込む
+///
+/// primaryとして解釈可能な最長の部分を取り出して抽象構文木の部分木を作る。
+/// primaryとは`num | "(" expr ")"`である。numは終端要素である。
+///
+/// - line - ソースコードの行。エラー表示に用いる。
+/// - tokens - (usize,
+/// [`Token`])のPeekableなイテレータ。usizeはトークンのソースコード中での位置である
 pub fn primary<I>(line: &str, tokens: &mut Peekable<I>) -> Box<Node>
 where
     I: Iterator<Item = (usize, Token)>,
