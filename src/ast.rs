@@ -5,9 +5,8 @@ use std::iter::Peekable;
 /// 抽象構文木
 #[derive(Debug, PartialEq, Eq)]
 pub enum Node {
-    // TODO: Binaryに名称変更
     /// 二項演算
-    BinOp(BinOp, Box<Node>, Box<Node>),
+    Binary(BinOp, Box<Node>, Box<Node>),
     /// 単項演算子
     Unary(UnaryOp, Box<Node>),
     /// 数値
@@ -49,12 +48,12 @@ where
             tokens.next();
             let lhs = node;
             let rhs = mul(line, tokens);
-            node = Box::new(Node::BinOp(BinOp::Add, lhs, rhs));
+            node = Box::new(Node::Binary(BinOp::Add, lhs, rhs));
         } else if *token == Token::Minus {
             tokens.next();
             let lhs = node;
             let rhs = mul(line, tokens);
-            node = Box::new(Node::BinOp(BinOp::Sub, lhs, rhs));
+            node = Box::new(Node::Binary(BinOp::Sub, lhs, rhs));
         } else {
             break;
         }
@@ -81,12 +80,12 @@ where
             tokens.next();
             let lhs = node;
             let rhs = unary(line, tokens);
-            node = Box::new(Node::BinOp(BinOp::Mul, lhs, rhs));
+            node = Box::new(Node::Binary(BinOp::Mul, lhs, rhs));
         } else if *token == Token::Slash {
             tokens.next();
             let lhs = node;
             let rhs = unary(line, tokens);
-            node = Box::new(Node::BinOp(BinOp::Div, lhs, rhs));
+            node = Box::new(Node::Binary(BinOp::Div, lhs, rhs));
         } else {
             break;
         }
@@ -171,9 +170,9 @@ mod test {
         let mut tokens = tokenize(s).into_iter().peekable();
         assert_eq!(
             expr(s, &mut tokens),
-            Box::new(BinOp(
+            Box::new(Binary(
                 Sub,
-                Box::new(BinOp(Add, Box::new(Num(1)), Box::new(Num(2)))),
+                Box::new(Binary(Add, Box::new(Num(1)), Box::new(Num(2)))),
                 Box::new(Num(3))
             ))
         );
@@ -185,12 +184,12 @@ mod test {
         let mut tokens = tokenize(s).into_iter().peekable();
         assert_eq!(
             expr(s, &mut tokens),
-            Box::new(BinOp(
+            Box::new(Binary(
                 Sub,
-                Box::new(BinOp(
+                Box::new(Binary(
                     Add,
                     Box::new(Num(1)),
-                    Box::new(BinOp(Mul, Box::new(Num(2)), Box::new(Num(3))))
+                    Box::new(Binary(Mul, Box::new(Num(2)), Box::new(Num(3))))
                 )),
                 Box::new(Num(4))
             ))
@@ -203,12 +202,12 @@ mod test {
         let mut tokens = tokenize(s).into_iter().peekable();
         assert_eq!(
             expr(s, &mut tokens),
-            Box::new(BinOp(
+            Box::new(Binary(
                 Sub,
-                Box::new(BinOp(
+                Box::new(Binary(
                     Add,
                     Box::new(Num(1)),
-                    Box::new(BinOp(Add, Box::new(Num(2)), Box::new(Num(3))))
+                    Box::new(Binary(Add, Box::new(Num(2)), Box::new(Num(3))))
                 )),
                 Box::new(Num(4))
             ))

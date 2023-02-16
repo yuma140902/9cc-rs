@@ -4,7 +4,7 @@ use crate::ast::{BinOp, Node};
 /// 抽象構文木からアセンブリコードを作る
 pub fn gen(node: &Node) {
     match node {
-        Node::BinOp(op, lhs, rhs) => {
+        Node::Binary(op, lhs, rhs) => {
             gen(lhs);
             gen(rhs);
             println!("\tpop rdi");
