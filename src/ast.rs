@@ -1,5 +1,5 @@
 //! 抽象構文木(AST)関係のモジュール
-use crate::token::Token;
+use crate::{show_error_panic, token::Token};
 use std::iter::Peekable;
 
 /// 抽象構文木
@@ -110,17 +110,14 @@ where
         if *token == Token::Plus {
             tokens.next();
             let operand = primary(line, tokens);
-            Box::new(Node::Unary(UnaryOp::Positive, operand))
+            return Box::new(Node::Unary(UnaryOp::Positive, operand));
         } else if *token == Token::Minus {
             tokens.next();
             let operand = primary(line, tokens);
-            Box::new(Node::Unary(UnaryOp::Negative, operand))
-        } else {
-            primary(line, tokens)
+            return Box::new(Node::Unary(UnaryOp::Negative, operand));
         }
-    } else {
-        crate::show_error_panic("unaryではありません", line, line.len())
     }
+    return primary(line, tokens);
 }
 
 /// トークン列からprimaryを読み込む
@@ -138,23 +135,37 @@ where
     if let Some((_, Token::OpenParenthesis)) = tokens.peek() {
         tokens.next();
         let node = expr(line, tokens);
-        if let Some((i, token)) = tokens.next() {
-            if token == Token::CloseParenthesis {
+        if let Some((_, token)) = tokens.peek() {
+            if *token == Token::CloseParenthesis {
+                tokens.next();
                 return node;
             }
-            crate::show_error_panic("')' がありません", line, i);
         }
-        crate::show_error_panic("')' がありません", line, line.len());
+
+        show_error_panic(
+            "')' がありません",
+            line,
+            if let Some((i, _)) = tokens.next() {
+                i
+            } else {
+                line.len()
+            },
+        )
     } else if let Some((_, Token::Num(_))) = tokens.peek() {
         if let Some((_, Token::Num(num))) = tokens.next() {
             return Box::new(Node::Num(num));
         }
     }
 
-    if let Some((i, _)) = tokens.next() {
-        crate::show_error_panic("数ではありません", line, i);
-    }
-    crate::show_error_panic("数ではありません", line, line.len());
+    show_error_panic(
+        "数ではありません。numも'('も見つかりませんでした",
+        line,
+        if let Some((i, _)) = tokens.next() {
+            i
+        } else {
+            line.len()
+        },
+    );
 }
 
 #[cfg(test)]
