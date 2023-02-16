@@ -34,6 +34,8 @@ test 0 0
 test 42 42
 test 21 5+20-4
 test 12 "10   + 3-  1"
+test 26 "2 * 3+4   *5"
+test 70 "2*(((3+4)))*5"
 
 echo "All tests passed"
 '''

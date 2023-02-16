@@ -1,4 +1,4 @@
-use ninecc::ast::expr;
+use ninecc::{ast::expr, gen};
 use std::env;
 
 fn main() -> anyhow::Result<()> {
@@ -8,7 +8,14 @@ fn main() -> anyhow::Result<()> {
     let mut tokens = ninecc::token::tokenize(s).into_iter().peekable();
 
     let ast = expr(s, &mut tokens);
-    dbg!(ast);
+    eprintln!("{:#?}", ast);
+
+    println!(".intel_syntax noprefix");
+    println!(".globl main");
+    println!("main:");
+    gen::gen(&ast);
+    println!("\tpop rax");
+    println!("\tret");
 
     Ok(())
 }

@@ -1,5 +1,6 @@
 pub mod ast;
 pub mod chars;
+pub mod gen;
 pub mod token;
 
 pub fn show_error(msg: &str, line: &str, index: usize) {

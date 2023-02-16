@@ -3,11 +3,16 @@ use std::iter::Peekable;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Node {
-    Add(Box<Node>, Box<Node>),
-    Sub(Box<Node>, Box<Node>),
-    Mul(Box<Node>, Box<Node>),
-    Div(Box<Node>, Box<Node>),
+    BinOp(BinOp, Box<Node>, Box<Node>),
     Num(u32),
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum BinOp {
+    Add,
+    Sub,
+    Mul,
+    Div,
 }
 
 pub fn expr<I>(line: &str, tokens: &mut Peekable<I>) -> Box<Node>
@@ -21,12 +26,12 @@ where
             tokens.next();
             let lhs = node;
             let rhs = mul(line, tokens);
-            node = Box::new(Node::Add(lhs, rhs));
+            node = Box::new(Node::BinOp(BinOp::Add, lhs, rhs));
         } else if *token == Token::Minus {
             tokens.next();
             let lhs = node;
             let rhs = mul(line, tokens);
-            node = Box::new(Node::Sub(lhs, rhs));
+            node = Box::new(Node::BinOp(BinOp::Sub, lhs, rhs));
         } else {
             break;
         }
@@ -45,12 +50,12 @@ where
             tokens.next();
             let lhs = node;
             let rhs = primary(line, tokens);
-            node = Box::new(Node::Mul(lhs, rhs));
+            node = Box::new(Node::BinOp(BinOp::Mul, lhs, rhs));
         } else if *token == Token::Slash {
             tokens.next();
             let lhs = node;
             let rhs = primary(line, tokens);
-            node = Box::new(Node::Div(lhs, rhs));
+            node = Box::new(Node::BinOp(BinOp::Div, lhs, rhs));
         } else {
             break;
         }
@@ -87,6 +92,7 @@ where
 
 #[cfg(test)]
 mod test {
+    use super::BinOp::*;
     use super::Node::*;
     use super::*;
     use crate::token::tokenize;
@@ -97,8 +103,9 @@ mod test {
         let mut tokens = tokenize(s).into_iter().peekable();
         assert_eq!(
             expr(s, &mut tokens),
-            Box::new(Sub(
-                Box::new(Add(Box::new(Num(1)), Box::new(Num(2)))),
+            Box::new(BinOp(
+                Sub,
+                Box::new(BinOp(Add, Box::new(Num(1)), Box::new(Num(2)))),
                 Box::new(Num(3))
             ))
         );
@@ -110,10 +117,12 @@ mod test {
         let mut tokens = tokenize(s).into_iter().peekable();
         assert_eq!(
             expr(s, &mut tokens),
-            Box::new(Sub(
-                Box::new(Add(
+            Box::new(BinOp(
+                Sub,
+                Box::new(BinOp(
+                    Add,
                     Box::new(Num(1)),
-                    Box::new(Mul(Box::new(Num(2)), Box::new(Num(3))))
+                    Box::new(BinOp(Mul, Box::new(Num(2)), Box::new(Num(3))))
                 )),
                 Box::new(Num(4))
             ))
@@ -126,10 +135,12 @@ mod test {
         let mut tokens = tokenize(s).into_iter().peekable();
         assert_eq!(
             expr(s, &mut tokens),
-            Box::new(Sub(
-                Box::new(Add(
+            Box::new(BinOp(
+                Sub,
+                Box::new(BinOp(
+                    Add,
                     Box::new(Num(1)),
-                    Box::new(Add(Box::new(Num(2)), Box::new(Num(3))))
+                    Box::new(BinOp(Add, Box::new(Num(2)), Box::new(Num(3))))
                 )),
                 Box::new(Num(4))
             ))
